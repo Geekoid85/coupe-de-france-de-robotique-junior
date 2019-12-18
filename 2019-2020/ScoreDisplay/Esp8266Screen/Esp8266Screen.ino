@@ -18,15 +18,15 @@
 SPIDMD dmd(DISPLAYS_WIDE, DISPLAYS_HIGH, pin_noe, pin_A, pin_B, pin_sclk); // DMD controls the entire display
 
 
-const char* ssid = "Panneau2018";// Panneau2018G2 ou Panneau2018
-const char* password = "mogetator";//mogetator2 ou mogetator
+const char* ssid = "Panneau2018G2";// Panneau2018G2 ou Panneau2018
+const char* password = "mogetator2";//mogetator2 ou mogetator
 
 unsigned int localPort = 8000;//port de communication aec l'esp
 byte packetBuffer[3024];
 
 String request = ""; //Chaine de caractère pour stocker le message udp recu.
 String estimatedScore = "85";
-int Button = 4; // Pin ou sont connectés les bouttons en parallèle pour déclancher l'affichage du score estimé
+int Button = 4; // Pin ou sont connectés les bouttons en parallèle pour déclancher l'affichage du score estimé (actuellement D2 donc 4)
 
 WiFiUDP Udp;
 
@@ -54,18 +54,21 @@ void setup() {
   dmd.begin(); // A partir de là l'écran est fonctionnel
   dmd.clearScreen(); // Effacer l'écran
   pinMode(Button, INPUT); // Mon bouton est une entrée
+
+  dmd.clearScreen();
+  dmd.drawString(0, 0, "00000");
 }
 
 void loop() {
-
+Serial.print(Button);
   if (Button == LOW) { // Si j'appuye sur le bouton (pull up) j'affiche le score estimé
     dmd.clearScreen();
     dmd.drawString(0, 0, estimatedScore);
   }
-  else if (Button == HIGH) {
+ /* else if (Button == HIGH) {
     dmd.clearScreen();
     dmd.drawString(0, 0, "rezon"); // Pour savoir c'est quel écran
-  }
+  } */
 
   int noBytes = Udp.parsePacket(); // noByte contient un chiffre correspondant à la taille du packet udp recu
   request = ""; // Effacer le précédent message recu
