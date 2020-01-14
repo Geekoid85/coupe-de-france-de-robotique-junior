@@ -17,18 +17,23 @@
 #define DISPLAYS_HIGH 1
 SPIDMD dmd(DISPLAYS_WIDE, DISPLAYS_HIGH, pin_noe, pin_A, pin_B, pin_sclk); // DMD controls the entire display
 
-
 const char* ssid = "Panneau2018G2";// Panneau2018G2 ou Panneau2018
 const char* password = "mogetator2";//mogetator2 ou mogetator
 
 unsigned int localPort = 8000;//port de communication aec l'esp
 byte packetBuffer[3024];
-
 String request = ""; //Chaine de caractère pour stocker le message udp recu.
-String estimatedScore = "85";
-int Button = 4; // Pin ou sont connectés les bouttons en parallèle pour déclancher l'affichage du score estimé (actuellement D2 donc 4)
-
 WiFiUDP Udp;
+
+int buttonPin = 4; // Momentary switch input pin, GPIO4 = D2 on the wemos d1 mini
+int buttonState; // Store the actually trusted state of the button
+int lastButtonState = LOW; // the previous reading from the input pin
+// the following variables are unsigned longs because the time, measured in
+// milliseconds, will quickly become a bigger number than can be stored in an int.
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 250;    // the debounce time; increase if the output flickers
+String estimatedScore = "85";
+String ScreenName = "Rézon";
 
 void setup() {
   WiFi.disconnect();
@@ -38,11 +43,12 @@ void setup() {
   WiFi.reconnect();
 
   Serial.begin(9600);
-  Serial.println("");
-  Serial.println("WiFi Connected");
+  delay(100);
+  Serial.println();
+  Serial.println("Wifi Access Point Started");
 
   Udp.begin(localPort);
-  Serial.println("Server started");
+  Serial.println("UDP Server started");
 
   Serial.print("Use this URL to connect: ");
   Serial.print("http://");
@@ -53,22 +59,49 @@ void setup() {
   dmd.selectFont(SystemFont5x7);
   dmd.begin(); // A partir de là l'écran est fonctionnel
   dmd.clearScreen(); // Effacer l'écran
-  pinMode(Button, INPUT); // Mon bouton est une entrée
 
   dmd.clearScreen();
-  dmd.drawString(0, 0, "00000");
+  dmd.drawString(0, 0, "00000"); // Screen initialized
+  Serial.println();
+  Serial.println("Screen initialized");
+  dmd.clearScreen();
+  dmd.drawString(0, 0, ScreenName);
+  Serial.println(ScreenName);
+  pinMode(buttonPin, INPUT);
+  Serial.println();
+  Serial.println("Starting Input Button Tracking");
+  Serial.println();
+  delay(500);
 }
 
 void loop() {
-Serial.print(Button);
-  if (Button == LOW) { // Si j'appuye sur le bouton (pull up) j'affiche le score estimé
-    dmd.clearScreen();
-    dmd.drawString(0, 0, estimatedScore);
+  int reading = digitalRead(buttonPin); // Read and affect the none trusted state of the GPIO linked to buttonPin
+  if (reading != lastButtonState) {
+    // reset the debouncing timer
+    lastDebounceTime = millis();
   }
- /* else if (Button == HIGH) {
-    dmd.clearScreen();
-    dmd.drawString(0, 0, "rezon"); // Pour savoir c'est quel écran
-  } */
+
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    // whatever the reading is at, it's been there for longer than the debounce
+    // delay, so take it as the actual current state:
+
+    // if the button state has changed:
+    if (reading != buttonState) {
+      buttonState = reading;
+      if (buttonState == LOW) {
+        Serial.print("The trusted button state is actually: ");
+        Serial.println(buttonState); // Print the button state
+        Serial.print("And so the displayed estimated score is: ");
+        Serial.println(estimatedScore);
+        Serial.println();
+        dmd.clearScreen();
+        dmd.drawString(0, 0, estimatedScore);
+      }
+    }
+  }
+  lastButtonState = reading;
+
+
 
   int noBytes = Udp.parsePacket(); // noByte contient un chiffre correspondant à la taille du packet udp recu
   request = ""; // Effacer le précédent message recu
