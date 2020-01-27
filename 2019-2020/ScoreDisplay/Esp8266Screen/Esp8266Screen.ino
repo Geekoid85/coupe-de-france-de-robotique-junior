@@ -17,8 +17,8 @@
 #define DISPLAYS_HIGH 1
 SPIDMD dmd(DISPLAYS_WIDE, DISPLAYS_HIGH, pin_noe, pin_A, pin_B, pin_sclk); // DMD controls the entire display
 
-const char* ssid = "Panneau2018G2";// Panneau2018G2 ou Panneau2018
-const char* password = "mogetator2";//mogetator2 ou mogetator
+const char* ssid = "Panneau2018";// Panneau2018G2 ou Panneau2018
+const char* password = "mogetator";//mogetator2 ou mogetator
 
 unsigned int localPort = 8000;//port de communication aec l'esp
 byte packetBuffer[3024];
@@ -31,9 +31,9 @@ int lastButtonState = LOW; // the previous reading from the input pin
 // the following variables are unsigned longs because the time, measured in
 // milliseconds, will quickly become a bigger number than can be stored in an int.
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
-unsigned long debounceDelay = 250;    // the debounce time; increase if the output flickers
+unsigned long debounceDelay = 150;    // the debounce time; increase if the output flickers
 String estimatedScore = "85";
-String ScreenName = "Rézon";
+String ScreenName = "Tor";
 
 void setup() {
   WiFi.disconnect();
@@ -60,8 +60,6 @@ void setup() {
   dmd.begin(); // A partir de là l'écran est fonctionnel
   dmd.clearScreen(); // Effacer l'écran
 
-  dmd.clearScreen();
-  dmd.drawString(0, 0, "00000"); // Screen initialized
   Serial.println();
   Serial.println("Screen initialized");
   dmd.clearScreen();
