@@ -33,7 +33,7 @@ int lastButtonState = LOW; // the previous reading from the input pin
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long debounceDelay = 150;    // the debounce time; increase if the output flickers
 String estimatedScore = "85";
-String ScreenName = "Tor";
+String ScreenName = "TaTor";
 
 void setup() {
   WiFi.disconnect();
